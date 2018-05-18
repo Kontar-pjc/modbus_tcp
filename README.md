@@ -59,3 +59,15 @@
   /* 小端字节序 */
   i = (data[0]<<0) | (data[1]<<8) | (data[2]<<16) | (data[3]<<24);
   ```
+
+
+
+  
+  16 bit   2 byte 数据 原数据为  0x AB CD
+  大端 0xAB 0xCD
+  小端 0xCD 0xAB
+  
+
+  32 bit   4 byte 数据 原数据为  0x AB CD EF GH
+  大端 0xAB 0xCD 0xEF 0xGH
+  小端 0xGH 0xEF 0xCD 0xAB

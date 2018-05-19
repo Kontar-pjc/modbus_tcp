@@ -11,7 +11,7 @@ LOGGER = modbus_tk.utils.create_logger("console")
 if __name__ == "__main__":
     try:
         #连接从机地址,这里要注意端口号和IP与从机一致
-        MASTER = modbus_tcp.TcpMaster(host="192.168.0.109", port=1100)
+        MASTER = modbus_tcp.TcpMaster(host="localhost", port=502)
         MASTER.set_timeout(5.0)
         LOGGER.info("connected")
 #        input_value = (14,20,60,80)

@@ -30,14 +30,14 @@ class device:
     
     def read_holding_register(self, id, register_start, register_quantity):
         data = self.master.execute(id, cst.READ_HOLDING_REGISTERS, register_start, register_quantity)
-        return self.adapter16.perform(data)
+        return self.adapter16.perform(data) 
 
 if __name__ == "__main__":
     try:
-        MASTER = modbus_tcp.TcpMaster(host="192.168.0.109", port=1100)
+        MASTER = modbus_tcp.TcpMaster(host="192.168.0.110", port=502)
         MASTER.set_timeout(5.0)
         input_value = (14,20,60,80)
         xiaomi_light = device("xiaomi", "light", MASTER, EndianType.LittleEndian.value)
-        print(xiaomi_light.read_holding_register(1,0,4))
+        print(hex(xiaomi_light.read_holding_register(1,5,2)[0]))
     except modbus_tk.modbus.ModbusError as err:
         pass

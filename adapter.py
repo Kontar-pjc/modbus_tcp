@@ -14,19 +14,13 @@ class Adapter:
 
     def check(self):
         pass
-    
-#    def length(self):
-#        return self.length
 
-#    def endian_type(self):
-#        return self.type
-
-class adapter16big(Adapter):
-    # 0x1234 存储为 0x12 0x34 的情况
+class adapter_AB(Adapter):
+    # 0xAB 存储为 0xAB 的情况
     # 一个寄存器存储一个16bit的整型的情况
     def __init__(self):
         # 两个字节，len(data) = 1
-        super().__init__(2, EndianType.BigEndian.value)
+        super().__init__(2, EndianType.AB.value)
 
     def perform(self, data):
         return list(data)
@@ -34,11 +28,11 @@ class adapter16big(Adapter):
     def check(self):
         pass
 
-class adapter16little(Adapter):
-    # 0x1234 存储为 0x34 0x12 的情况
+class adapter_BA(Adapter):
+    # 0xAB 存储为 0xBA 的情况
     # 一个寄存器存储一个16bit的整型的情况
     def __init__(self):
-        super().__init__(2, EndianType.LittleEndian.value)
+        super().__init__(2, EndianType.BA.value)
 
     def perform(self, data):
         res = []
@@ -50,13 +44,13 @@ class adapter16little(Adapter):
     def check(self):
         pass
 
-class adapter32big(Adapter):
-    # 0x12345678 存储为 0x12 0x34 0x56 0x78 的情况
+class adapter_ABCD(Adapter):
+    # 0xABCD 存储为 0xABCD 的情况
     # 两个寄存器存储一个32bit的整型的情况
     # 2个data值返回一个整型值
     def __init__(self):
         # 两个字节，len(data) = 1
-        super().__init__(4, EndianType.BigEndian.value)
+        super().__init__(4, EndianType.ABCD.value)
 
     def perform(self, data):
         self.check(data)
@@ -71,12 +65,38 @@ class adapter32big(Adapter):
     def check(self, data):
         return len(data)%2 == 0
 
-class adapter32little(Adapter):
-    # 0x12345678 存储为 0x78 0x56 0x34 0x12 的情况
+class adapter_CDAB(Adapter):
+    # 0xABCD 存储为 0xCDAB 的情况
+    # 两个寄存器存储一个32bit的整型的情况
+    # 2个data值返回一个整型值
+    def __init__(self):
+        # 两个字节，len(data) = 1
+        super().__init__(4, EndianType.CDAB.value)
+
+    def perform(self, data):
+        self.check(data)
+        even_fun = lambda x: not x % 2
+        even = filter(even_fun, range(len(data)-1))
+        res = []
+        for i in even:
+            temp = data[i+1]<<16 | data[i]
+            res.append(temp)
+        return res
+
+    def check(self, data):
+        return len(data)%2 == 0
+
+    # input data: 0xABCD
+    # return: [0xCD, 0xAB]
+    def format(self, data):
+        return [data&0x0000ffff, data>>16]
+        
+class adapter_DCBA(Adapter):
+    # 0xABCD 存储为 0xDCBA 的情况
     # 两个寄存器存储一个32bit的整型的情况
     # data是16bit的值，return 32bit的整型
     def __init__(self):
-        super().__init__(4, EndianType.LittleEndian.value)
+        super().__init__(4, EndianType.DCBA.value)
 
     def perform(self, data):
         self.check(data)
@@ -95,3 +115,70 @@ class adapter32little(Adapter):
 
     def check(self, data):
         return len(data)%2 == 0
+
+class adapter_ABCDEFGH(Adapter):
+    # 0xABCDEFGH 存储为 0xABCDEFGH 的情况
+    # 四个寄存器存储一个64bit的整型的情况
+    # 4个data值返回一个double类型值
+    def __init__(self):
+        # 两个字节，len(data) = 1
+        super().__init__(8, EndianType.ABCDEFGH.value)
+
+    def perform(self, data):
+        self.check(data)
+        even_fun = lambda x: not x % 4
+        even = filter(even_fun, range(len(data)-1))
+        res = []
+        for i in even:
+            temp = data[i]<<48 | data[i+1]<<32 | data[i+2]<<16 | data[i+3]
+            res.append(temp)
+        return res
+
+    def check(self, data):
+        return len(data)%4 == 0
+
+class adapter_GHEFCDAB(Adapter):
+    # 0xABCDEFGH 存储为 0xGHEFCDAB 的情况
+    # 两个寄存器存储一个32bit的整型的情况
+    # data是16bit的值，return 32bit的整型
+    def __init__(self):
+        super().__init__(8, EndianType.GHEFCDAB.value)
+
+    def perform(self, data):
+        self.check(data)
+        # 定义一个判断时候是偶数的函数
+        even_fun = lambda x: not x % 4
+        even = filter(even_fun, range(len(data)-1))
+        res = []
+        for i in even:
+            temp = data[i+3]<<48 | data[i+2]<<32 | data[i+1]<<16 | data[i]
+            res.append(temp)
+        return res
+
+    def check(self, data):
+        return len(data)%4 == 0
+
+class adapter_HGFEDCBA(Adapter):
+    # 0xABCDEFGH 存储为 0xHGFEDCBA 的情况
+    # 两个寄存器存储一个32bit的整型的情况
+    # data是16bit的值，return 32bit的整型
+    def __init__(self):
+        super().__init__(8, EndianType.HGFEDCBA.value)
+
+    def perform(self, data):
+        self.check(data)
+        temp_list = []
+        for each in data:
+            temp = each<<8 & 0xffff | each>>8
+            temp_list.append(temp)
+        # 定义一个判断时候是偶数的函数
+        even_fun = lambda x: not x % 4
+        even = filter(even_fun, range(len(data)-1))
+        res = []
+        for i in even:
+            temp = temp_list[i+3]<<48 | temp_list[i+2]<<32 | temp_list[i+1]<<16 | temp_list[i]
+            res.append(temp)
+        return res
+
+    def check(self, data):
+        return len(data)%4 == 0
